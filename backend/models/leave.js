@@ -13,7 +13,7 @@ const leaveSchema = new mongoose.Schema({
   },
   fromDate:  { type: Date, required: true },
   toDate:    { type: Date, required: true },
-  totalDays: { type: Number, required: true },
+  totalDays: { type: Number, required: true, default: 1 },
   reason:    { type: String, required: true, trim: true },
   status: {
     type: String,
@@ -26,13 +26,11 @@ const leaveSchema = new mongoose.Schema({
   emailSent:   { type: Boolean, default: false },
 }, { timestamps: true });
 
-// Auto-calculate totalDays before save
-leaveSchema.pre('save', function (next) {
-  if (this.isModified('fromDate') || this.isModified('toDate')) {
-    const diff = (this.toDate - this.fromDate) / (1000 * 60 * 60 * 24);
+leaveSchema.pre('save', function () {
+  if (this.fromDate && this.toDate) {
+    const diff = (new Date(this.toDate) - new Date(this.fromDate)) / (1000 * 60 * 60 * 24);
     this.totalDays = Math.max(1, Math.round(diff) + 1);
   }
-  next();
 });
 
 module.exports = mongoose.model('Leave', leaveSchema);
